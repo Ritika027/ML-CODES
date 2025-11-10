@@ -1,0 +1,61 @@
+import pandas as pd
+import numpy as np
+from mlxtend.frequent_patterns import apriori,association_rules
+from mlxtend.preprocessing import TransactionEncoder
+import matplotlib.pyplot as plt
+import networkx as nx
+
+df = pd.read_csv("Market_Basket_Optimisation.csv" , header=None)
+df.head()
+
+print(f"Number of transactions: {df.shape[0]}")
+print(f"Number of items: {df.shape[1]}")
+
+df.fillna('', inplace=True)
+transactions = []
+for i in range(df.shape[0]):
+    transaction = []
+    for j in range(df.shape[1]):
+        if (str(df.values[i, j]) != ''):
+            transaction.append(str(df.values[i, j]))
+            
+    transactions.append(transaction)
+for idx, t in enumerate(transactions[:5]):
+    print(f"Transaction {idx+1}: {t}")
+
+
+    te = TransactionEncoder()
+x = te.fit_transform(transactions) 
+dff = pd.DataFrame(x, columns = te.columns_)
+dff.head()
+
+
+freq_itemset = apriori(dff, min_support = 0.03, use_colnames = True)
+freq_itemset.head(20)
+
+
+rules = association_rules(freq_itemset, metric = 'confidence', min_threshold = 0.2)
+rules.head()
+
+
+print(f"Total number of rules generated: {len(rules)}\n")
+G = nx.Graph() 
+for i, rule in rules.iterrows():
+    antecedents = ", ".join(rule['antecedents'])
+    consequents = ", ".join(rule['consequents'])
+    rule_name = f"{antecedents} -> {consequents}"
+    confidence = rule['confidence']
+    print(f"Rule.: {antecedents} -> {consequents}, Confidence: {confidence:.3f}")
+
+    G.add_node(antecedents, label=antecedents)
+    G.add_node(consequents, label=consequents)
+    G.add_edge(antecedents, consequents, label=f"Confidence: {confidence:.3f}")
+
+labels = {node: G.nodes[node]['label'] for node in G.nodes}
+edge_labels = {edge: G.edges[edge]['label'] for edge in G.edges}
+plt.figure(figsize=(10, 10))
+pos = nx.spring_layout(G, k=15)
+nx.draw(G, pos, labels=labels, node_size=6000, font_size=8, node_color='yellow', with_labels=True)
+nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_size=8)
+plt.axis('off')
+plt.show()
