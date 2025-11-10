@@ -1,0 +1,190 @@
+import pandas as pd 
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split as tts
+import matplotlib.pyplot as plt
+
+dff = pd.read_csv("india-temperatures.csv")
+dff.head()
+
+sh= dff.shape
+print("Shape of Data")
+print("No. of Samples:", sh[0])
+print("No. of features:", sh[1])
+print(dff.dtypes)
+print(dff.describe())
+X = np.array(dff[['YEAR']])
+cols = [c for c in dff.columns if c != 'YEAR']
+n = len(cols)
+rows = (n + 2) // 3
+plt.figure(figsize=(15, 5*rows))
+i = 1 
+for col in cols:
+    plt.subplot(rows, 3, i)
+    plt.scatter(dff['YEAR'], dff[col])
+    plt.xlabel('YEAR')
+    plt.ylabel(col)
+    plt.title(f'YEAR vs {col}')
+    i += 1  
+
+plt.tight_layout()
+plt.show()
+
+
+def mse(y_true, y_pred):
+    return ((y_true - y_pred) ** 2).mean()
+
+def mae(y_true, y_pred):
+    return np.abs(y_true - y_pred).mean()
+
+def r2(y_true, y_pred):
+    y_mean = y_true.mean()
+    ssr = ((y_pred - y_mean) ** 2).sum()  
+    sst = ((y_true - y_mean) ** 2).sum()  
+    return ssr / sst
+
+
+y = np.array(dff[['ANNUAL']])
+
+model = LinearRegression()
+mse_train_lst = []
+mse_test_lst = []
+best_split = 0
+best_mse = float('inf')
+
+for i in np.arange(0.1, 1.0, 0.1):
+    X_train, X_test, y_train, y_test = tts(X, y, train_size=i, random_state=2)
+    model.fit(X_train, y_train)
+
+    y_train_pred = model.predict(X_train)
+    y_test_pred = model.predict(X_test)
+
+    mse_train = mse(y_train , y_train_pred)
+    mse_test =mse(y_test , y_test_pred)
+
+    mse_train_lst.append(float(round(mse_train, 2)))
+    mse_test_lst.append(float(round(mse_test, 2)))
+
+    if mse_test < best_mse:
+        best_mse = mse_test
+        best_split = i
+
+print("Train MSE list:", mse_train_lst)
+print("Test MSE list:", mse_test_lst)
+print("Best split train size:", best_split)
+print("Best test MSE:", round(best_mse, 2))
+
+
+splits = np.arange(0.1, 1.0, 0.1)
+nos=dff.shape[0]
+plt.plot(splits*nos, mse_train_lst, label='Train MSE')
+plt.plot(splits*nos, mse_test_lst, label='Test MSE')
+
+plt.xlabel('Train Size')
+plt.ylabel('Mean Squared Error')
+plt.title('Train vs Test MSE for Different Train Sizes')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+
+months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
+
+corrs = dff[months].corrwith(dff['YEAR'])          # Directly compute correlations
+sorted_corrs = corrs.sort_values()                 # Sort ascending
+corr_months = sorted_corrs.index.tolist()          # Month names in order
+
+print("Correlation of YEAR with each month (ascending):")
+print(sorted_corrs.round(2))
+
+best_month, best_corr = corrs.idxmax(), corrs.max()
+print(f"\nBest Correlation is for {best_month}: {best_corr:.2f}")
+
+
+y=np.array(dff[[best_month]])
+X_train,X_test,y_train,y_test= tts(X,y,train_size= best_split,random_state = 2)
+model.fit(X_train, y_train)
+y_train_pred = model.predict(X_train)
+y_test_pred = model.predict(X_test)
+
+mse_train = mse(y_train , y_train_pred)
+mse_test = mse(y_test , y_test_pred) 
+
+mae_train = mae(y_train , y_train_pred)
+mae_test  = mae(y_test , y_test_pred)
+
+y_train_mean = y_train.mean()
+y_test_mean  = y_test.mean()
+
+r2_train = r2(y_train , y_train_pred)
+r2_test = r2(y_test , y_test_pred)
+
+print(f"Train MSE: {mse_train:.2f}")
+print(f"Test MSE: {mse_test:.2f}")
+print(f"Train MAE: {mae_train:.2f}")
+print(f"Test MAE: {mae_test:.2f}")
+print(f"Train R2: {r2_train:.2f}")
+print(f"Test R2: {r2_test:.2f}")
+
+
+
+plt.figure(figsize=(10,6))
+plt.scatter(X_train, y_train, color='orange', label='Train Data')
+plt.scatter(X_test, y_test, color='green', label='Test Data')
+plt.scatter(X_train, y_train_pred, color='skyblue', label='Training prediction')
+plt.scatter(X_test, y_test_pred, color='blue', label='Testing prediction')
+plt.plot(X, model.predict(X), color='red', linewidth=2, label='Regression Line')
+plt.xlabel("Year")
+plt.ylabel("December Values")
+plt.title("Linear Regression: YEAR vs DEC")
+plt.legend()
+plt.grid(True)
+
+plt.show()
+
+
+bf = corr_months[-1] 
+second_bf = corr_months[-2] 
+print("\nBest Feature:", bf)
+print("Second Best Feature:", second_bf)
+
+X = dff[[bf, second_bf]]
+y = dff["YEAR"]
+
+X_train, X_test, y_train, y_test = tts(X, y, train_size=best_split, random_state=42)
+
+multi_model = LinearRegression()
+multi_model.fit(X_train, y_train)
+
+y_train_pred = multi_model.predict(X_train)
+y_test_pred = multi_model.predict(X_test)
+
+print("\n--- Multiple Linear Regression Performance ---")
+print(f"Training MSE: {mse(y_train, y_train_pred):.2f}")
+print(f"Training MAE: {mae(y_train, y_train_pred):.2f}")
+print(f"Training R² : {r2(y_train, y_train_pred):.2f}")
+print(f"Testing MSE : {mse(y_test, y_test_pred):.2f}")
+print(f"Testing MAE : {mae(y_test, y_test_pred):.2f}")
+print(f"Testing R²  : {r2(y_test, y_test_pred):.2f}")
+
+# 3D plot
+fig = plt.figure(figsize=(10,8))
+ax = fig.add_subplot(111, projection='3d')
+
+ax.scatter(X_train[bf], X_train[second_bf], y_train, color='blue', label="Training Data")
+ax.scatter(X_test[bf], X_test[second_bf], y_test, color='green', label="Testing Data")
+
+x_surf, y_surf = np.meshgrid(
+    np.linspace(X[bf].min(), X[bf].max(), 50),
+    np.linspace(X[second_bf].min(), X[second_bf].max(), 50)
+)
+
+z_surf = multi_model.intercept_ + multi_model.coef_[0]*x_surf + multi_model.coef_[1]*y_surf
+ax.plot_surface(x_surf, y_surf, z_surf, color='red', alpha=0.2)
+
+ax.set_xlabel(bf)
+ax.set_ylabel(second_bf)
+ax.set_zlabel("Year")
+ax.set_title("Multiple Linear Regression with Regression Plane")
+ax.legend()
+plt.show()
