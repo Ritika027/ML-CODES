@@ -1,0 +1,687 @@
+Problem Statement 1
+
+
+
+
+// --------------------------------------------------------------
+// 1️⃣ Create / Switch to Database
+// --------------------------------------------------------------
+use EmployeeManagementDB
+// 👉 This creates (or switches to) a database named "EmployeeManagementDB".
+
+
+// --------------------------------------------------------------
+// 2️⃣ Create a Collection (Simple — no validation to avoid errors)
+// --------------------------------------------------------------
+db.createCollection("employees")
+// 👉 MongoDB will also auto-create this when you insert the first document.
+// 👉 We create it manually here for clarity.
+
+
+// --------------------------------------------------------------
+// 3️⃣ Insert Documents
+// --------------------------------------------------------------
+
+// 👉 Insert one employee document
+db.employees.insertOne({
+  empId: 101,
+  name: "Ritika Sharma",
+  department: "HR",
+  salary: 45000,
+  designation: "HR Executive"
+});
+
+// 👉 Insert multiple employee documents (Batch insert)
+db.employees.insertMany([
+  { empId: 102, name: "Amit Kumar", department: "Finance", salary: 55000, designation: "Accountant" },
+  { empId: 103, name: "Priya Singh", department: "IT", salary: 65000, designation: "Developer" },
+  { empId: 104, name: "Rahul Verma", department: "Sales", salary: 40000, designation: "Sales Executive" },
+  { empId: 105, name: "Neha Gupta", department: "IT", salary: 70000, designation: "Team Lead" }
+]);
+// 👉 insertMany() is used for batch insert of multiple documents.
+
+
+// --------------------------------------------------------------
+// 4️⃣ Display All Documents
+// --------------------------------------------------------------
+db.employees.find().pretty();
+// 👉 find() shows all documents; pretty() formats them neatly.
+
+
+// --------------------------------------------------------------
+// 5️⃣ Remove Documents
+// --------------------------------------------------------------
+
+// 👉 Remove one employee (with specific empId)
+db.employees.deleteOne({ empId: 104 });
+
+// 👉 Remove multiple employees (for example, all from Finance dept)
+db.employees.deleteMany({ department: "Finance" });
+
+
+// --------------------------------------------------------------
+// 6️⃣ Update Documents
+// --------------------------------------------------------------
+
+// 👉 (a) Replace entire document (document replacement)
+db.employees.replaceOne(
+  { empId: 101 },
+  { empId: 101, name: "Ritika Sharma", department: "Admin", salary: 48000, designation: "Admin Executive" }
+);
+// ⚠️ replaceOne() replaces the entire document, not just specific fields.
+
+
+// 👉 (b) Update specific fields using $set and $inc (modifiers)
+db.employees.updateOne(
+  { empId: 103 },
+  { $set: { designation: "Senior Developer" }, $inc: { salary: 2000 } }
+);
+// $set → changes specific fields
+// $inc → increases numeric fields by a value
+
+
+// 👉 (c) Upsert – update if exists, else insert new document
+db.employees.updateOne(
+  { empId: 106 },
+  { $set: { name: "Manish Tiwari", department: "Support", salary: 50000, designation: "Support Engineer" } },
+  { upsert: true }
+);
+// upsert:true → if empId:106 not found, it will create a new record.
+
+
+// 👉 (d) Update multiple employees at once
+db.employees.updateMany(
+  { department: "IT" },
+  { $inc: { salary: 3000 } }
+);
+// updateMany() applies change to all matching documents.
+
+
+// 👉 (e) Return updated document (show new value after update)
+db.employees.findOneAndUpdate(
+  { empId: 103 },
+  { $set: { department: "R&D" } },
+  { returnDocument: "after" }
+);
+// findOneAndUpdate() updates and returns the updated record.
+
+
+// --------------------------------------------------------------
+// 7️⃣ Cursor Operations (Viewing & Querying Data)
+// --------------------------------------------------------------
+
+// 👉 Show first 3 employees only
+db.employees.find().limit(3);
+
+// 👉 Skip first 2 employees
+db.employees.find().skip(2);
+
+// 👉 Sort employees by salary (descending order)
+db.employees.find().sort({ salary: -1 });
+
+// 👉 Advanced Queries:
+
+// (a) Find employees with salary between 45000 and 70000
+db.employees.find({ salary: { $gte: 45000, $lte: 70000 } });
+
+// (b) Find employees from IT or HR department
+db.employees.find({ department: { $in: ["IT", "HR"] } });
+
+// (c) Find employees whose name starts with "R"
+db.employees.find({ name: { $regex: /^R/, $options: "i" } });
+
+// (d) Find employees whose salary is NOT 50000
+db.employees.find({ salary: { $ne: 50000 } });
+
+
+// --------------------------------------------------------------
+// 8️⃣ (Optional) Display all data neatly again
+// --------------------------------------------------------------
+db.employees.find().pretty();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2
+
+// --------------------------------------------------------------
+// 1️⃣ Create / Switch to Database
+// --------------------------------------------------------------
+use EmployeeManagementDB
+// 👉 Switch to your Employee Management database
+
+
+// --------------------------------------------------------------
+// 2️⃣ Create Collection and Insert Sample Data
+// --------------------------------------------------------------
+db.employees.insertMany([
+  { empId: 101, name: "Ritika Sharma", department: "HR", salary: 45000, designation: "HR Executive", skills: ["Communication", "Recruitment"] },
+  { empId: 102, name: "Amit Kumar", department: "Finance", salary: 55000, designation: "Accountant", skills: ["Excel", "Taxation"] },
+  { empId: 103, name: "Priya Singh", department: "IT", salary: 65000, designation: "Developer", skills: ["JavaScript", "React", "Node.js"] },
+  { empId: 104, name: "Rahul Verma", department: "Sales", salary: 40000, designation: "Sales Executive", skills: ["Negotiation", "CRM"] },
+  { empId: 105, name: "Neha Gupta", department: "IT", salary: 70000, designation: "Team Lead", skills: ["Leadership", "MongoDB", "Node.js"] },
+  { empId: 106, name: "Manish Tiwari", department: "Support", salary: null, designation: "Support Engineer", skills: ["Customer Handling", "Troubleshooting"] }
+]);
+// 👉 Inserted multiple employee documents (with arrays and a null field)
+
+
+// --------------------------------------------------------------
+// 3️⃣ FIND and FINDONE
+// --------------------------------------------------------------
+
+// 👉 Show all employees
+db.employees.find();
+
+// 👉 Find one specific employee
+db.employees.findOne({ empId: 103 });
+
+
+// --------------------------------------------------------------
+// 4️⃣ QUERY CRITERIA (Conditionals)
+// --------------------------------------------------------------
+
+// 👉 Find employees whose salary > 50000
+db.employees.find({ salary: { $gt: 50000 } });
+
+// 👉 Find employees whose salary is between 45000 and 70000
+db.employees.find({ salary: { $gte: 45000, $lte: 70000 } });
+
+// 👉 Find employees whose department is IT or HR (using $or)
+db.employees.find({
+  $or: [{ department: "IT" }, { department: "HR" }]
+});
+
+// 👉 Find employees whose salary is NOT 55000
+db.employees.find({ salary: { $not: { $eq: 55000 } } });
+
+// 👉 Find employees whose salary field exists (not null)
+db.employees.find({ salary: { $ne: null } });
+
+
+// --------------------------------------------------------------
+// 5️⃣ CONDITIONAL SEMANTICS
+// --------------------------------------------------------------
+
+// 👉 Find employees where salary >= 60000 AND department = IT
+db.employees.find({ $and: [{ salary: { $gte: 60000 } }, { department: "IT" }] });
+
+// 👉 Find employees whose salary < 50000 OR department = Sales
+db.employees.find({ $or: [{ salary: { $lt: 50000 } }, { department: "Sales" }] });
+
+
+// --------------------------------------------------------------
+// 6️⃣ TYPE-SPECIFIC QUERIES
+// --------------------------------------------------------------
+
+// 👉 Find employees where salary is null
+db.employees.find({ salary: null });
+
+// 👉 Find employees whose name starts with 'R' (Regular Expression)
+db.employees.find({ name: { $regex: /^R/, $options: "i" } });
+
+// 👉 Find employees having skill "Node.js" (Querying Arrays)
+db.employees.find({ skills: "Node.js" });
+
+// 👉 Find employees having both "MongoDB" and "Node.js"
+db.employees.find({ skills: { $all: ["MongoDB", "Node.js"] } });
+
+// 👉 Find employees where skills array has exactly 2 elements
+db.employees.find({ skills: { $size: 2 } });
+
+
+// --------------------------------------------------------------
+// 7️⃣ $WHERE QUERIES
+// --------------------------------------------------------------
+
+// 👉 Find employees whose salary > 60000 (using JavaScript condition)
+db.employees.find({ $where: "this.salary > 60000" });
+
+// 👉 Find employees where name length is greater than 10
+db.employees.find({ $where: "this.name.length > 10" });
+
+// 👉 Find employees where department name starts with 'S'
+db.employees.find({ $where: "this.department.startsWith('S')" });
+
+
+// --------------------------------------------------------------
+// 8️⃣ (Optional) SORTING & DISPLAY
+// --------------------------------------------------------------
+db.employees.find().sort({ salary: -1 }).pretty();
+// 👉 Show all data sorted by salary (descending)
+
+
+
+
+
+
+
+
+
+
+
+
+
+3
+
+
+
+
+
+
+// --------------------------------------------------------------
+// 1️⃣ Create / Switch to Database
+// --------------------------------------------------------------
+use EmployeeManagementDB
+// 👉 Switch to or create your database
+
+
+// --------------------------------------------------------------
+// 2️⃣ Create Orders Collection and Insert Sample Data
+// --------------------------------------------------------------
+db.orders.insertMany([
+  { orderId: 1, custId: "C101", date: new Date("2024-10-01"), amount: 1200 },
+  { orderId: 2, custId: "C102", date: new Date("2024-10-02"), amount: 800 },
+  { orderId: 3, custId: "C101", date: new Date("2024-10-05"), amount: 1500 },
+  { orderId: 4, custId: "C103", date: new Date("2024-10-07"), amount: 600 },
+  { orderId: 5, custId: "C102", date: new Date("2024-10-10"), amount: 2000 },
+  { orderId: 6, custId: "C103", date: new Date("2024-10-11"), amount: 1200 },
+  { orderId: 7, custId: "C101", date: new Date("2024-10-12"), amount: 1800 },
+  { orderId: 8, custId: "C104", date: new Date("2024-10-15"), amount: 500 }
+]);
+// 👉 Inserted sample orders for multiple customers (C101, C102, etc.)
+
+
+// --------------------------------------------------------------
+// 3️⃣ Display All Data (Check Insert)
+// --------------------------------------------------------------
+db.orders.find().pretty();
+
+
+// --------------------------------------------------------------
+// 4️⃣ MAP-REDUCE: Calculate Total Amount per Customer
+// --------------------------------------------------------------
+
+// 👉 Step 1: Define the "map" function
+var mapFunction = function() {
+  emit(this.custId, this.amount);
+};
+// 👇 Meaning:
+// For each document, “emit” creates a key-value pair
+// key = custId, value = amount
+
+
+// 👉 Step 2: Define the "reduce" function
+var reduceFunction = function(keyCustId, valuesAmounts) {
+  return Array.sum(valuesAmounts);
+};
+// 👇 Meaning:
+// It sums all the amount values for the same customer (key)
+
+
+// 👉 Step 3: Execute the Map-Reduce operation
+db.orders.mapReduce(
+  mapFunction,         // map
+  reduceFunction,      // reduce
+  {
+    out: "total_amount_per_customer"  // output collection name
+  }
+);
+
+
+// --------------------------------------------------------------
+// 5️⃣ Check the Map-Reduce Result
+// --------------------------------------------------------------
+db.total_amount_per_customer.find().pretty();
+
+// 👉 Output Example:
+// { "_id": "C101", "value": 4500 }
+// { "_id": "C102", "value": 2800 }
+// { "_id": "C103", "value": 1800 }
+// { "_id": "C104", "value": 500 }
+
+
+// --------------------------------------------------------------
+// 6️⃣ INDEXING
+// --------------------------------------------------------------
+
+// 👉 Create index on customer ID to speed up queries
+db.orders.createIndex({ custId: 1 });
+
+// 👉 Check all existing indexes
+db.orders.getIndexes();
+
+// 👉 Example: Find all orders by customer C101 (now faster due to index)
+db.orders.find({ custId: "C101" });
+
+
+// --------------------------------------------------------------
+// 7️⃣ Optional – Drop index (if needed)
+db.orders.dropIndex({ custId: 1 });
+
+
+
+4
+
+
+// --------------------------------------------------------------
+// 1️⃣ Create / Switch to Database
+// --------------------------------------------------------------
+use EmployeeManagementDB
+// 👉 Switch to or create your working database
+
+
+// --------------------------------------------------------------
+// 2️⃣ Create Orders Collection and Insert Sample Data
+// --------------------------------------------------------------
+db.orders.insertMany([
+  { orderId: 1, custId: "C101", date: new Date("2024-10-01"), amount: 1200 },
+  { orderId: 2, custId: "C102", date: new Date("2024-10-02"), amount: 800 },
+  { orderId: 3, custId: "C101", date: new Date("2024-10-05"), amount: 1500 },
+  { orderId: 4, custId: "C103", date: new Date("2024-10-07"), amount: 600 },
+  { orderId: 5, custId: "C102", date: new Date("2024-10-10"), amount: 2000 },
+  { orderId: 6, custId: "C103", date: new Date("2024-10-11"), amount: 1200 },
+  { orderId: 7, custId: "C101", date: new Date("2024-10-12"), amount: 1800 },
+  { orderId: 8, custId: "C104", date: new Date("2024-10-15"), amount: 500 },
+  { orderId: 9, custId: "C101", date: new Date("2024-10-18"), amount: 900 }
+]);
+// 👉 Inserted multiple orders for different customers
+
+
+// --------------------------------------------------------------
+// 3️⃣ Basic Check
+// --------------------------------------------------------------
+db.orders.find().pretty();
+// 👉 Check inserted data
+
+
+// --------------------------------------------------------------
+// 4️⃣ AGGREGATION PIPELINE EXAMPLES
+// --------------------------------------------------------------
+
+// 👉 Group by customer (custId) and calculate total amount (SUM)
+db.orders.aggregate([
+  { $group: { _id: "$custId", totalAmount: { $sum: "$amount" } } }
+]);
+// 👇 Output Example:
+// { "_id": "C101", "totalAmount": 5400 }
+
+
+// 👉 Find MIN amount per customer
+db.orders.aggregate([
+  { $group: { _id: "$custId", minAmount: { $min: "$amount" } } }
+]);
+
+// 👉 Find MAX amount per customer
+db.orders.aggregate([
+  { $group: { _id: "$custId", maxAmount: { $max: "$amount" } } }
+]);
+
+// 👉 Find AVERAGE amount per customer
+db.orders.aggregate([
+  { $group: { _id: "$custId", avgAmount: { $avg: "$amount" } } }
+]);
+
+// 👉 Count number of orders per customer
+db.orders.aggregate([
+  { $group: { _id: "$custId", orderCount: { $count: {} } } }
+]);
+// or using $sum: 1
+db.orders.aggregate([
+  { $group: { _id: "$custId", orderCount: { $sum: 1 } } }
+]);
+
+// 👉 Get FIRST and LAST order amount (based on document order)
+db.orders.aggregate([
+  { $group: { _id: "$custId", firstAmount: { $first: "$amount" }, lastAmount: { $last: "$amount" } } }
+]);
+
+// 👉 Push all order amounts into an array
+db.orders.aggregate([
+  { $group: { _id: "$custId", allOrders: { $push: "$amount" } } }
+]);
+// 👇 Output Example:
+// { "_id": "C101", "allOrders": [1200, 1500, 1800, 900] }
+
+// 👉 Add unique order amounts into an array (no duplicates)
+db.orders.aggregate([
+  { $group: { _id: "$custId", uniqueAmounts: { $addToSet: "$amount" } } }
+]);
+
+
+// --------------------------------------------------------------
+// 5️⃣ Multiple Operations Together (Example)
+// --------------------------------------------------------------
+
+// 👉 Combine multiple operators in a single aggregation
+db.orders.aggregate([
+  { $group: {
+      _id: "$custId",
+      totalAmount: { $sum: "$amount" },
+      avgAmount: { $avg: "$amount" },
+      minAmount: { $min: "$amount" },
+      maxAmount: { $max: "$amount" },
+      orderCount: { $sum: 1 },
+      orders: { $push: "$amount" }
+  }},
+  { $sort: { totalAmount: -1 } }  // sort by total amount descending
+]);
+// 👉 Shows full summary report of each customer
+
+
+// --------------------------------------------------------------
+// 6️⃣ INDEXING
+// --------------------------------------------------------------
+
+// 👉 Create index on custId (ascending)
+db.orders.createIndex({ custId: 1 });
+
+// 👉 Create index on amount (descending)
+db.orders.createIndex({ amount: -1 });
+
+// 👉 Show current indexes
+db.orders.getIndexes();
+
+// 👉 Example of query using index (search customer orders)
+db.orders.find({ custId: "C101" });
+// This query will be faster due to index
+
+
+// --------------------------------------------------------------
+// 7️⃣ OPTIONAL — Drop Index
+// --------------------------------------------------------------
+db.orders.dropIndex({ custId: 1 });
+
+
+
+5
+
+
+
+// ---------------------------
+// 🌟 STAR SCHEMA DESIGN
+// ---------------------------
+
+// ✅ Create and use database
+use OnlineFoodDB;
+
+// ✅ Dimension: Customer
+db.Customer.insertMany([
+  { Customer_ID: 1, Name: "Ritika", Gender: "Female", Age: 22, City: "Pune", State: "Maharashtra" },
+  { Customer_ID: 2, Name: "Rahul", Gender: "Male", Age: 25, City: "Delhi", State: "Delhi" }
+]);
+
+// ✅ Dimension: Restaurant
+db.Restaurant.insertMany([
+  { Restaurant_ID: 1, Restaurant_Name: "Spice Villa", Cuisine_Type: "Indian", Location: "Pune" },
+  { Restaurant_ID: 2, Restaurant_Name: "China Bowl", Cuisine_Type: "Chinese", Location: "Delhi" }
+]);
+
+// ✅ Dimension: Food
+db.Food.insertMany([
+  { Food_ID: 1, Food_Name: "Paneer Tikka", Category: "Veg", Price: 250 },
+  { Food_ID: 2, Food_Name: "Chicken Manchurian", Category: "Non-Veg", Price: 300 }
+]);
+
+// ✅ Dimension: Date
+db.Date.insertMany([
+  { Date_ID: 1, Date: "2025-11-01", Day: "Saturday", Month: "November", Year: 2025 },
+  { Date_ID: 2, Date: "2025-11-02", Day: "Sunday", Month: "November", Year: 2025 }
+]);
+
+// ✅ Fact Table: Fact_Orders
+db.Fact_Orders.insertMany([
+  {
+    Order_ID: 101,
+    Customer_ID: 1,
+    Restaurant_ID: 1,
+    Food_ID: 1,
+    Date_ID: 1,
+    Quantity: 2,
+    Amount: 500,
+    Discount: 50,
+    Total_Sales: 450
+  },
+  {
+    Order_ID: 102,
+    Customer_ID: 2,
+    Restaurant_ID: 2,
+    Food_ID: 2,
+    Date_ID: 2,
+    Quantity: 1,
+    Amount: 300,
+    Discount: 0,
+    Total_Sales: 300
+  }
+]);
+
+// ✅ Simple aggregation query examples
+
+// 🔹 Total Sales by Restaurant
+db.Fact_Orders.aggregate([
+  {
+    $lookup: {
+      from: "Restaurant",
+      localField: "Restaurant_ID",
+      foreignField: "Restaurant_ID",
+      as: "restaurant_info"
+    }
+  },
+  { $unwind: "$restaurant_info" },
+  {
+    $group: {
+      _id: "$restaurant_info.Restaurant_Name",
+      totalSales: { $sum: "$Total_Sales" }
+    }
+  }
+]);
+
+// 🔹 Total Sales by Month
+db.Fact_Orders.aggregate([
+  {
+    $lookup: {
+      from: "Date",
+      localField: "Date_ID",
+      foreignField: "Date_ID",
+      as: "date_info"
+    }
+  },
+  { $unwind: "$date_info" },
+  {
+    $group: {
+      _id: "$date_info.Month",
+      totalSales: { $sum: "$Total_Sales" }
+    }
+  }
+]);
+
+
+
+
+// ---------------------------
+// ❄️ SNOWFLAKE SCHEMA DESIGN
+// ---------------------------
+
+// ✅ Create and use same database
+use OnlineFoodDB;
+
+// ✅ Dimension: Location (Sub-table for Customer)
+db.Location.insertMany([
+  { Location_ID: 1, City: "Pune", State: "Maharashtra", Country: "India" },
+  { Location_ID: 2, City: "Delhi", State: "Delhi", Country: "India" }
+]);
+
+// ✅ Dimension: Customer (References Location_ID)
+db.Customer_SF.insertMany([
+  { Customer_ID: 1, Name: "Ritika", Gender: "Female", Age: 22, Location_ID: 1 },
+  { Customer_ID: 2, Name: "Rahul", Gender: "Male", Age: 25, Location_ID: 2 }
+]);
+
+// ✅ Dimension: Cuisine (Sub-table for Restaurant)
+db.Cuisine.insertMany([
+  { Cuisine_ID: 1, Cuisine_Type: "Indian" },
+  { Cuisine_ID: 2, Cuisine_Type: "Chinese" }
+]);
+
+// ✅ Dimension: Restaurant (References Cuisine_ID)
+db.Restaurant_SF.insertMany([
+  { Restaurant_ID: 1, Restaurant_Name: "Spice Villa", Cuisine_ID: 1, Location: "Pune" },
+  { Restaurant_ID: 2, Restaurant_Name: "China Bowl", Cuisine_ID: 2, Location: "Delhi" }
+]);
+
+// ✅ Dimension: Food (same as before)
+db.Food_SF.insertMany([
+  { Food_ID: 1, Food_Name: "Paneer Tikka", Category: "Veg", Price: 250 },
+  { Food_ID: 2, Food_Name: "Chicken Manchurian", Category: "Non-Veg", Price: 300 }
+]);
+
+// ✅ Dimension: Date (same as before)
+db.Date_SF.insertMany([
+  { Date_ID: 1, Date: "2025-11-01", Day: "Saturday", Month: "November", Year: 2025 },
+  { Date_ID: 2, Date: "2025-11-02", Day: "Sunday", Month: "November", Year: 2025 }
+]);
+
+// ✅ Fact Table: Orders
+db.Fact_Orders_SF.insertMany([
+  { Order_ID: 201, Customer_ID: 1, Restaurant_ID: 1, Food_ID: 1, Date_ID: 1, Quantity: 2, Total_Sales: 450 },
+  { Order_ID: 202, Customer_ID: 2, Restaurant_ID: 2, Food_ID: 2, Date_ID: 2, Quantity: 1, Total_Sales: 300 }
+]);
+
+// ✅ Aggregation Example — Total Sales by Cuisine Type
+db.Fact_Orders_SF.aggregate([
+  {
+    $lookup: {
+      from: "Restaurant_SF",
+      localField: "Restaurant_ID",
+      foreignField: "Restaurant_ID",
+      as: "rest"
+    }
+  },
+  { $unwind: "$rest" },
+  {
+    $lookup: {
+      from: "Cuisine",
+      localField: "rest.Cuisine_ID",
+      foreignField: "Cuisine_ID",
+      as: "cuisine"
+    }
+  },
+  { $unwind: "$cuisine" },
+  {
+    $group: {
+      _id: "$cuisine.Cuisine_Type",
+      totalSales: { $sum: "$Total_Sales" }
+    }
+  }
+]);
+
